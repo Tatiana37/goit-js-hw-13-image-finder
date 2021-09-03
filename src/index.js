@@ -30,7 +30,8 @@ refs.gallery.addEventListener('click', onOpenGallery);
 
 async function onSearch(e) {
 
-    e.preventDefault()
+    e.preventDefault();
+    onClearGallery();
     refs.loadMore.style.visibility = 'hidden';
     const newValue = e.currentTarget.elements.query.value
     if (!newValue.trim()) {
@@ -40,11 +41,13 @@ async function onSearch(e) {
         })
         return;
     }
-
+    e.currentTarget.reset();
     try {
         state.value = newValue
         const pictures = await getPictures(state.value, state.page);
         refs.gallery.innerHTML = cardTmp(pictures);
+        
+        
         if (pictures.length > 11) {
             notice({
                 title: `Downloading pictures...`,
@@ -61,6 +64,7 @@ async function onSearch(e) {
     } catch (error) {
         console.log(error.message);
     }
+    
 }
 
 
@@ -73,6 +77,7 @@ async function onLoadMore() {
         const observer = new IntersectionObserver(onLoadMore, options)
         observer.observe(refs.loadMore)
     }
+
 //     refs.gallery.scrollIntoView({
 //         behavior: 'smooth',
 //         block: 'end',
@@ -80,21 +85,32 @@ async function onLoadMore() {
 }
 
 function onOpenGallery(e) {
-    // window.addEventListener('keydown', onEscKeyPress);
+    e.preventDefault();
+    // window.addEventListener('keydown', onClearGallery);
     if (e.target.nodeName !== 'IMG') {
         return
     }
-    basicLightbox.create(`
+    const instance = basicLightbox.create(`
     <img src="${e.target.dataset.source}" width="800" height="600">
-    `).show()
+    `)
+    instance.show();
+    window.addEventListener('keydown', e => {
+        const ESC_KEY_CODE = 'Escape';
+        if (e.code === ESC_KEY_CODE) {
+            instance.close();
+        }
+    });
+}
+
+function onClearGallery() {
+    refs.gallery.innerHTML = '';
 }
 
 // function onEscKeyPress(e) {
-//     const ESC_KEY_CODE = 'Escape';
+//     
 //     if (e.code === ESC_KEY_CODE) {
 //         basicLightbox.create(`
 //     <img src="${e.target.dataset.source}" width="800" height="600">
 //     `).close()
 // };
 //     }
-    
